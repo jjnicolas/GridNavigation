@@ -553,9 +553,10 @@ struct ProductCatalogExample: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
-                showOnSaleOnly ? Color.red : .ultraThinMaterial,
+                showOnSaleOnly ? Color.red : Color.clear,
                 in: Capsule()
             )
+            .background(showOnSaleOnly ? Color.clear : .ultraThinMaterial)
         }
     }
 
@@ -572,9 +573,10 @@ struct ProductCatalogExample: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
-                showFeaturedOnly ? Color.blue : .ultraThinMaterial,
+                showFeaturedOnly ? Color.blue : Color.clear,
                 in: Capsule()
             )
+            .background(showFeaturedOnly ? Color.clear : .ultraThinMaterial)
         }
     }
 
