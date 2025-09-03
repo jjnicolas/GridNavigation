@@ -552,11 +552,8 @@ struct ProductCatalogExample: View {
             .foregroundStyle(showOnSaleOnly ? .white : .primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(
-                showOnSaleOnly ? Color.red : Color.clear,
-                in: Capsule()
-            )
-            .background(showOnSaleOnly ? Color.clear : .ultraThinMaterial)
+            .background(showOnSaleOnly ? Color.red : Color.clear, in: Capsule())
+            .background(showOnSaleOnly ? nil : .ultraThinMaterial)
         }
     }
 
@@ -572,11 +569,8 @@ struct ProductCatalogExample: View {
             .foregroundStyle(showFeaturedOnly ? .white : .primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(
-                showFeaturedOnly ? Color.blue : Color.clear,
-                in: Capsule()
-            )
-            .background(showFeaturedOnly ? Color.clear : .ultraThinMaterial)
+            .background(showFeaturedOnly ? Color.blue : Color.clear, in: Capsule())
+            .background(showFeaturedOnly ? nil : .ultraThinMaterial)
         }
     }
 
