@@ -6,20 +6,20 @@ let package = Package(
     name: "GridNavigationExample",
     platforms: [
         .macOS(.v14),
-        .iOS(.v17)
+        .iOS(.v17),
     ],
     products: [
-        .executable(name: "GridNavigationExample", targets: ["GridNavigationExample"])
+        .executable(name: "GridNavigationExample", targets: ["GridNavigationExample"]),
     ],
     dependencies: [
-        .package(path: "../../")
+        .package(path: "../../"),
     ],
     targets: [
         .executableTarget(
             name: "GridNavigationExample",
             dependencies: [
-                .product(name: "GridNavigation", package: "GridNavigation")
-            ]
-        )
-    ]
+                .product(name: "GridNavigation", package: "GridNavigation"),
+            ],
+        ),
+    ],
 )

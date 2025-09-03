@@ -7,13 +7,14 @@ let package = Package(
     name: "GridNavigation",
     platforms: [
         .macOS(.v14),
-        .iOS(.v17)
+        .iOS(.v17),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "GridNavigation",
-            targets: ["GridNavigation"]),
+            targets: ["GridNavigation"],
+        ),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -22,9 +23,11 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         .target(
             name: "GridNavigation",
-            dependencies: []),
+            dependencies: [],
+        ),
         .testTarget(
             name: "GridNavigationTests",
-            dependencies: ["GridNavigation"]),
-    ]
+            dependencies: ["GridNavigation"],
+        ),
+    ],
 )

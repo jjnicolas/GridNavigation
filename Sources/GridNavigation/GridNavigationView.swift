@@ -45,12 +45,12 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     // MARK: - State
 
     #if os(macOS)
-    @FocusState private var focusedIndex: Int?
+        @FocusState private var focusedIndex: Int?
     #endif
     @State private var presentDetail = false
     @State private var selectedItem: Item?
     #if os(macOS)
-    @State private var lastOpenedIndex: Int?
+        @State private var lastOpenedIndex: Int?
     #endif
 
     // MARK: - Initializer
@@ -68,14 +68,14 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         columns: [GridItem],
         spacing: CGFloat = 20,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
-        @ViewBuilder detailContent: @escaping (Item) -> DetailContent
+        @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
     ) {
         self.items = items
         self.columns = columns
-        self.columnCount = columns.count
+        columnCount = columns.count
         self.spacing = spacing
-        self.cellBuilder = cellContent
-        self.detailBuilder = detailContent
+        cellBuilder = cellContent
+        detailBuilder = detailContent
     }
 
     public var body: some View {
@@ -84,25 +84,25 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         #if os(macOS)
-                        cellBuilder(item)
-                            .focusable()
-                            .focused($focusedIndex, equals: index)
-                            .onTapGesture {
-                                selectedItem = item
-                                presentDetail = true
-                            }
-                        #else
-                        NavigationLink(value: item) {
                             cellBuilder(item)
-                        }
+                                .focusable()
+                                .focused($focusedIndex, equals: index)
+                                .onTapGesture {
+                                    selectedItem = item
+                                    presentDetail = true
+                                }
+                        #else
+                            NavigationLink(value: item) {
+                                cellBuilder(item)
+                            }
                         #endif
                     }
                 }
                 .padding()
                 #if os(macOS)
-                .onChange(of: focusedIndex) { _, newIndex in
-                    scrollToFocusedItem(newIndex, proxy: proxy)
-                }
+                    .onChange(of: focusedIndex) { _, newIndex in
+                        scrollToFocusedItem(newIndex, proxy: proxy)
+                    }
                 #endif
             }
             .navigationDestination(for: Item.self) { item in
@@ -116,7 +116,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 focusedIndex: $focusedIndex,
                 itemCount: items.count,
                 columnCount: columnCount,
-                onReturnPressed: handleReturnPress
+                onReturnPressed: handleReturnPress,
             )
             .task {
                 focusedIndex = items.isEmpty ? nil : 0
@@ -128,17 +128,17 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     // MARK: - Private Methods
 
     #if os(macOS)
-    private func scrollToFocusedItem(_ newIndex: Int?, proxy: ScrollViewProxy) {
-        guard let index = newIndex, items.indices.contains(index) else { return }
-        withAnimation {
-            proxy.scrollTo(items[index].id, anchor: UnitPoint.center)
+        private func scrollToFocusedItem(_ newIndex: Int?, proxy: ScrollViewProxy) {
+            guard let index = newIndex, items.indices.contains(index) else { return }
+            withAnimation {
+                proxy.scrollTo(items[index].id, anchor: UnitPoint.center)
+            }
         }
-    }
     #endif
 
     private func itemDetailView(for item: Item) -> some View {
         detailBuilder(item)
-            #if os(macOS)
+        #if os(macOS)
             .onAppear {
                 if let index = items.firstIndex(where: { $0.id == item.id }) {
                     lastOpenedIndex = index
@@ -147,14 +147,14 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             .onDisappear {
                 restoreFocusAfterPop()
             }
-            #endif
+        #endif
     }
 
     @ViewBuilder
     private func presentedDetailView() -> some View {
         if let item = selectedItem {
             detailBuilder(item)
-                #if os(macOS)
+            #if os(macOS)
                 .onAppear {
                     lastOpenedIndex = selectedItem.flatMap { item in
                         items.firstIndex(where: { $0.id == item.id })
@@ -163,32 +163,32 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 .onDisappear {
                     restoreFocusAfterPop()
                 }
-                #endif
+            #endif
         } else {
             Text("No item selected")
-                #if os(macOS)
+            #if os(macOS)
                 .onDisappear {
                     restoreFocusAfterPop()
                 }
-                #endif
+            #endif
         }
     }
 
     #if os(macOS)
-    private func handleReturnPress(_ index: Int) {
-        guard items.indices.contains(index) else { return }
-        let item = items[index] // O(1) direct access
-        selectedItem = item
-        lastOpenedIndex = index
-        presentDetail = true
-    }
-
-    private func restoreFocusAfterPop() {
-        guard let index = lastOpenedIndex else { return }
-        Task {
-            focusedIndex = index
+        private func handleReturnPress(_ index: Int) {
+            guard items.indices.contains(index) else { return }
+            let item = items[index] // O(1) direct access
+            selectedItem = item
+            lastOpenedIndex = index
+            presentDetail = true
         }
-    }
+
+        private func restoreFocusAfterPop() {
+            guard let index = lastOpenedIndex else { return }
+            Task {
+                focusedIndex = index
+            }
+        }
     #endif
 }
 
@@ -210,7 +210,7 @@ public extension GridNavigationView {
         columnWidth: CGFloat,
         spacing: CGFloat = 20,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
-        @ViewBuilder detailContent: @escaping (Item) -> DetailContent
+        @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
     ) {
         let columns = Array(repeating: GridItem(.fixed(columnWidth)), count: columnCount)
         self.init(
@@ -218,7 +218,7 @@ public extension GridNavigationView {
             columns: columns,
             spacing: spacing,
             cellContent: cellContent,
-            detailContent: detailContent
+            detailContent: detailContent,
         )
     }
 
@@ -237,7 +237,7 @@ public extension GridNavigationView {
         maxItemWidth: CGFloat = 200,
         spacing: CGFloat = 20,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
-        @ViewBuilder detailContent: @escaping (Item) -> DetailContent
+        @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
     ) {
         let columns = [GridItem(.adaptive(minimum: minItemWidth, maximum: maxItemWidth))]
         self.init(
@@ -245,7 +245,7 @@ public extension GridNavigationView {
             columns: columns,
             spacing: spacing,
             cellContent: cellContent,
-            detailContent: detailContent
+            detailContent: detailContent,
         )
     }
 }
