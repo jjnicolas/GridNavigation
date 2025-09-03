@@ -608,6 +608,11 @@ struct PhotoDetailView: View {
     let photo: Photo
     let onFavoriteToggle: () -> Void
     @Environment(\.dismiss) private var dismiss
+    
+    #if os(macOS)
+    enum Field: Hashable { case title }
+    @FocusState private var focusedField: Field?
+    #endif
 
     var body: some View {
         ScrollView {
@@ -669,6 +674,10 @@ struct PhotoDetailView: View {
                     Text(photo.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        #if os(macOS)
+                        .focusable()
+                        .focused($focusedField, equals: .title)
+                        #endif
 
                     if let location = photo.location {
                         HStack {
@@ -757,6 +766,12 @@ struct PhotoDetailView: View {
         .onKeyPress(keys: [.escape]) { _ in
             dismiss()
             return .handled
+        }
+        .task(id: photo.id) {
+            focusedField = nil
+            await Task.yield()
+            await Task.yield()
+            focusedField = .title
         }
         #endif
     }
