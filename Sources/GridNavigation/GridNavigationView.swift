@@ -85,9 +85,16 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         #if os(macOS)
                         cellBuilder(item)
+                            .focusable()
                             .focused($focusedIndex, equals: index)
+                            .onTapGesture {
+                                selectedItem = item
+                                presentDetail = true
+                            }
                         #else
-                        cellBuilder(item)
+                        NavigationLink(value: item) {
+                            cellBuilder(item)
+                        }
                         #endif
                     }
                 }
