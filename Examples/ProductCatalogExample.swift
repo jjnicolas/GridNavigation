@@ -540,11 +540,12 @@ struct ProductCatalogExample: View {
         }
     }
 
+@ViewBuilder
     private var onSaleToggle: some View {
         Button {
             showOnSaleOnly.toggle()
         } label: {
-            HStack(spacing: 4) {
+            let baseView = HStack(spacing: 4) {
                 Image(systemName: "tag.fill")
                 Text("On Sale")
             }
@@ -552,16 +553,23 @@ struct ProductCatalogExample: View {
             .foregroundStyle(showOnSaleOnly ? .white : .primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(showOnSaleOnly ? Color.red : Color.clear, in: Capsule())
-            .background(showOnSaleOnly ? nil : .ultraThinMaterial)
+            
+            if showOnSaleOnly {
+                baseView
+                    .background(Color.red, in: Capsule())
+            } else {
+                baseView
+                    .background(.ultraThinMaterial, in: Capsule())
+            }
         }
     }
 
+@ViewBuilder
     private var featuredToggle: some View {
         Button {
             showFeaturedOnly.toggle()
         } label: {
-            HStack(spacing: 4) {
+            let baseView = HStack(spacing: 4) {
                 Image(systemName: "star.fill")
                 Text("Featured")
             }
@@ -569,8 +577,14 @@ struct ProductCatalogExample: View {
             .foregroundStyle(showFeaturedOnly ? .white : .primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(showFeaturedOnly ? Color.blue : Color.clear, in: Capsule())
-            .background(showFeaturedOnly ? nil : .ultraThinMaterial)
+            
+            if showFeaturedOnly {
+                baseView
+                    .background(Color.blue, in: Capsule())
+            } else {
+                baseView
+                    .background(.ultraThinMaterial, in: Capsule())
+            }
         }
     }
 
