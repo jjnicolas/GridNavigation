@@ -608,10 +608,10 @@ struct PhotoDetailView: View {
     let photo: Photo
     let onFavoriteToggle: () -> Void
     @Environment(\.dismiss) private var dismiss
-    
+
     #if os(macOS)
-    enum Field: Hashable { case title }
-    @FocusState private var focusedField: Field?
+        enum Field: Hashable { case title }
+        @FocusState private var focusedField: Field?
     #endif
 
     var body: some View {
@@ -674,10 +674,10 @@ struct PhotoDetailView: View {
                     Text(photo.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        #if os(macOS)
+                    #if os(macOS)
                         .focusable()
                         .focused($focusedField, equals: .title)
-                        #endif
+                    #endif
 
                     if let location = photo.location {
                         HStack {

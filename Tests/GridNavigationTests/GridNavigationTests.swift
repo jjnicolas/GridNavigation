@@ -1,5 +1,5 @@
-@testable import GridNavigation
 import XCTest
+@testable import GridNavigation
 
 final class GridNavigationTests: XCTestCase {
     struct TestItem: GridNavigable {

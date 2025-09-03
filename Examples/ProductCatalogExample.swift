@@ -13,23 +13,23 @@ enum ProductCategory: String, CaseIterable {
 
     var icon: String {
         switch self {
-        case .electronics: return "laptopcomputer"
-        case .clothing: return "tshirt"
-        case .home: return "house"
-        case .books: return "book"
-        case .sports: return "sportscourt"
-        case .toys: return "gamecontroller"
+        case .electronics: "laptopcomputer"
+        case .clothing: "tshirt"
+        case .home: "house"
+        case .books: "book"
+        case .sports: "sportscourt"
+        case .toys: "gamecontroller"
         }
     }
 
     var color: Color {
         switch self {
-        case .electronics: return .blue
-        case .clothing: return .purple
-        case .home: return .green
-        case .books: return .orange
-        case .sports: return .red
-        case .toys: return .pink
+        case .electronics: .blue
+        case .clothing: .purple
+        case .home: .green
+        case .books: .orange
+        case .sports: .red
+        case .toys: .pink
         }
     }
 }
@@ -42,19 +42,19 @@ enum ProductAvailability: String, CaseIterable {
 
     var color: Color {
         switch self {
-        case .inStock: return .green
-        case .lowStock: return .orange
-        case .outOfStock: return .red
-        case .preOrder: return .blue
+        case .inStock: .green
+        case .lowStock: .orange
+        case .outOfStock: .red
+        case .preOrder: .blue
         }
     }
 
     var icon: String {
         switch self {
-        case .inStock: return "checkmark.circle.fill"
-        case .lowStock: return "exclamationmark.triangle.fill"
-        case .outOfStock: return "xmark.circle.fill"
-        case .preOrder: return "clock.circle.fill"
+        case .inStock: "checkmark.circle.fill"
+        case .lowStock: "exclamationmark.triangle.fill"
+        case .outOfStock: "xmark.circle.fill"
+        case .preOrder: "clock.circle.fill"
         }
     }
 }
@@ -77,7 +77,7 @@ struct Product: GridNavigable {
     let imageColor: Color
 
     var discountPercentage: Int? {
-        guard let originalPrice = originalPrice, originalPrice > price else {
+        guard let originalPrice, originalPrice > price else {
             return nil
         }
         return Int(((originalPrice - price) / originalPrice) * 100)
@@ -88,7 +88,7 @@ struct Product: GridNavigable {
     }
 
     var formattedOriginalPrice: String? {
-        guard let originalPrice = originalPrice else { return nil }
+        guard let originalPrice else { return nil }
         return String(format: "$%.2f", originalPrice)
     }
 
@@ -104,7 +104,7 @@ struct Product: GridNavigable {
             rating: 4.8,
             reviewCount: 1247,
             description:
-                "Professional laptop with M3 Pro chip, 16-inch Liquid Retina XDR display, and all-day battery life.",
+            "Professional laptop with M3 Pro chip, 16-inch Liquid Retina XDR display, and all-day battery life.",
             features: [
                 "M3 Pro chip", "16-inch display", "18-hour battery",
                 "96W USB-C adapter",
@@ -125,7 +125,7 @@ struct Product: GridNavigable {
             rating: 4.5,
             reviewCount: 892,
             description:
-                "Premium noise-canceling wireless headphones with 30-hour battery life.",
+            "Premium noise-canceling wireless headphones with 30-hour battery life.",
             features: [
                 "Noise canceling", "30-hour battery", "Quick charge",
                 "Touch controls",
@@ -146,7 +146,7 @@ struct Product: GridNavigable {
             rating: 4.2,
             reviewCount: 456,
             description:
-                "100% organic cotton t-shirt available in multiple colors and sizes.",
+            "100% organic cotton t-shirt available in multiple colors and sizes.",
             features: [
                 "100% cotton", "Machine washable", "Pre-shrunk",
                 "Multiple colors",
@@ -167,7 +167,7 @@ struct Product: GridNavigable {
             rating: 4.6,
             reviewCount: 234,
             description:
-                "Ergonomic gaming chair with lumbar support and adjustable armrests.",
+            "Ergonomic gaming chair with lumbar support and adjustable armrests.",
             features: [
                 "Lumbar support", "Adjustable height", "360° swivel",
                 "5-year warranty",
@@ -188,7 +188,7 @@ struct Product: GridNavigable {
             rating: 4.7,
             reviewCount: 567,
             description:
-                "Comprehensive guide to modern programming techniques and best practices.",
+            "Comprehensive guide to modern programming techniques and best practices.",
             features: [
                 "600+ pages", "Code examples", "Digital access",
                 "Author interviews",
@@ -209,7 +209,7 @@ struct Product: GridNavigable {
             rating: 4.4,
             reviewCount: 189,
             description:
-                "Professional tennis racket with power and control for intermediate players.",
+            "Professional tennis racket with power and control for intermediate players.",
             features: [
                 "Power frame", "Comfort grip", "Vibration dampening",
                 "String included",
@@ -230,7 +230,7 @@ struct Product: GridNavigable {
             rating: 4.9,
             reviewCount: 123,
             description:
-                "Build iconic landmarks with this detailed architecture set.",
+            "Build iconic landmarks with this detailed architecture set.",
             features: [
                 "500+ pieces", "Display stand", "Instruction booklet",
                 "Ages 12+",
@@ -251,7 +251,7 @@ struct Product: GridNavigable {
             rating: 4.3,
             reviewCount: 678,
             description:
-                "GPS smartwatch with health monitoring and 7-day battery life.",
+            "GPS smartwatch with health monitoring and 7-day battery life.",
             features: [
                 "GPS tracking", "Heart rate monitor", "7-day battery",
                 "Water resistant",
@@ -272,7 +272,7 @@ struct Product: GridNavigable {
             rating: 4.5,
             reviewCount: 345,
             description:
-                "Classic denim jacket made from sustainable cotton with vintage wash.",
+            "Classic denim jacket made from sustainable cotton with vintage wash.",
             features: [
                 "Sustainable cotton", "Classic fit", "Multiple pockets",
                 "Machine washable",
@@ -293,7 +293,7 @@ struct Product: GridNavigable {
             rating: 4.6,
             reviewCount: 456,
             description:
-                "Smart robot vacuum with app control and automatic dirt disposal.",
+            "Smart robot vacuum with app control and automatic dirt disposal.",
             features: [
                 "App control", "Auto dirt disposal", "Smart mapping",
                 "Voice control",
@@ -314,7 +314,7 @@ struct Product: GridNavigable {
             rating: 4.4,
             reviewCount: 234,
             description:
-                "Professional chef cookbook with 200+ recipes and cooking techniques.",
+            "Professional chef cookbook with 200+ recipes and cooking techniques.",
             features: [
                 "200+ recipes", "Step-by-step photos", "Cooking tips",
                 "Hardcover",
@@ -335,7 +335,7 @@ struct Product: GridNavigable {
             rating: 4.1,
             reviewCount: 167,
             description:
-                "Official size basketball with excellent grip and durability.",
+            "Official size basketball with excellent grip and durability.",
             features: [
                 "Official size", "Composite leather", "Deep channels",
                 "Indoor/outdoor",
@@ -356,7 +356,7 @@ struct ProductCatalogExample: View {
     @State private var selectedAvailability: ProductAvailability? = nil
     @State private var showOnSaleOnly = false
     @State private var showFeaturedOnly = false
-    @State private var priceRange: ClosedRange<Double> = 0...500
+    @State private var priceRange: ClosedRange<Double> = 0 ... 500
     @State private var sortBy: SortOption = .featured
     @State private var viewMode: ViewMode = .grid
 
@@ -405,12 +405,12 @@ struct ProductCatalogExample: View {
 
         // Filter by sale status
         if showOnSaleOnly {
-            filtered = filtered.filter { $0.isOnSale }
+            filtered = filtered.filter(\.isOnSale)
         }
 
         // Filter by featured status
         if showFeaturedOnly {
-            filtered = filtered.filter { $0.isFeatured }
+            filtered = filtered.filter(\.isFeatured)
         }
 
         // Filter by price range
@@ -433,7 +433,7 @@ struct ProductCatalogExample: View {
             case .name:
                 return product1.name < product2.name
             case .newest:
-                return product1.id.uuidString < product2.id.uuidString  // Simulate newness
+                return product1.id.uuidString < product2.id.uuidString // Simulate newness
             }
         }
     }
@@ -540,7 +540,7 @@ struct ProductCatalogExample: View {
         }
     }
 
-@ViewBuilder
+    @ViewBuilder
     private var onSaleToggle: some View {
         Button {
             showOnSaleOnly.toggle()
@@ -553,7 +553,7 @@ struct ProductCatalogExample: View {
             .foregroundStyle(showOnSaleOnly ? .white : .primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            
+
             if showOnSaleOnly {
                 baseView
                     .background(Color.red, in: Capsule())
@@ -564,7 +564,7 @@ struct ProductCatalogExample: View {
         }
     }
 
-@ViewBuilder
+    @ViewBuilder
     private var featuredToggle: some View {
         Button {
             showFeaturedOnly.toggle()
@@ -577,7 +577,7 @@ struct ProductCatalogExample: View {
             .foregroundStyle(showFeaturedOnly ? .white : .primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            
+
             if showFeaturedOnly {
                 baseView
                     .background(Color.blue, in: Capsule())
@@ -691,7 +691,7 @@ struct ProductCard: View {
 
                         // Sale Badge
                         if product.isOnSale,
-                            let discount = product.discountPercentage
+                           let discount = product.discountPercentage
                         {
                             Text("-\(discount)%")
                                 .font(.caption)
@@ -725,7 +725,7 @@ struct ProductCard: View {
                 }
 
                 // Hover Actions
-                if isHovered && product.availability != .outOfStock {
+                if isHovered, product.availability != .outOfStock {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(.black.opacity(0.4))
                         .frame(height: 160)
@@ -775,7 +775,7 @@ struct ProductCard: View {
 
                 // Rating
                 HStack(spacing: 2) {
-                    ForEach(0..<5) { index in
+                    ForEach(0 ..< 5) { index in
                         Image(
                             systemName: index < Int(product.rating)
                                 ? "star.fill" : "star"
@@ -899,7 +899,7 @@ struct ProductListRow: View {
                 // Rating and Reviews
                 HStack(spacing: 4) {
                     HStack(spacing: 1) {
-                        ForEach(0..<5) { index in
+                        ForEach(0 ..< 5) { index in
                             Image(
                                 systemName: index < Int(product.rating)
                                     ? "star.fill" : "star"
@@ -1005,7 +1005,7 @@ struct ProductDetailView: View {
                                 Spacer()
 
                                 if product.isOnSale,
-                                    let discount = product.discountPercentage
+                                   let discount = product.discountPercentage
                                 {
                                     Text("-\(discount)% OFF")
                                         .font(.subheadline)
@@ -1033,16 +1033,16 @@ struct ProductDetailView: View {
                             Text(product.name)
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
-                                #if os(macOS)
-                                    .focusable()
-                                    .focused($focusedField, equals: .name)
-                                #endif
+                            #if os(macOS)
+                                .focusable()
+                                .focused($focusedField, equals: .name)
+                            #endif
                         }
 
                         // Rating and Reviews
                         HStack(spacing: 8) {
                             HStack(spacing: 2) {
-                                ForEach(0..<5) { index in
+                                ForEach(0 ..< 5) { index in
                                     Image(
                                         systemName: index < Int(product.rating)
                                             ? "star.fill" : "star"
@@ -1193,8 +1193,8 @@ struct ProductDetailView: View {
                             value: product.availability.rawValue,
                             icon: product.availability.icon
                         )
-                        if product.availability != .outOfStock
-                            && product.availability != .preOrder
+                        if product.availability != .outOfStock,
+                           product.availability != .preOrder
                         {
                             ProductDetailRow(
                                 title: "Stock",
@@ -1214,17 +1214,17 @@ struct ProductDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
         #if os(macOS)
-            .focusable()
-            .onKeyPress(keys: [.escape]) { _ in
-                dismiss()
-                return .handled
-            }
-            .task(id: product.id) {
-                focusedField = nil
-                await Task.yield()
-                await Task.yield()
-                focusedField = .name
-            }
+        .focusable()
+        .onKeyPress(keys: [.escape]) { _ in
+            dismiss()
+            return .handled
+        }
+        .task(id: product.id) {
+            focusedField = nil
+            await Task.yield()
+            await Task.yield()
+            focusedField = .name
+        }
         #endif
     }
 }
