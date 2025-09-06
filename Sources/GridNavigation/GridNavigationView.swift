@@ -105,10 +105,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     }
                 #endif
             }
+            #if os(macOS)
             .navigationDestination(isPresented: $presentDetail) {
                 presentedDetailView()
             }
-            #if os(macOS)
             .gridKeyboardNavigation(
                 focusedIndex: $focusedIndex,
                 itemCount: items.count,
@@ -117,6 +117,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             )
             .task {
                 focusedIndex = items.isEmpty ? nil : 0
+            }
+            #else
+            .navigationDestination(for: Item.self) { item in
+                itemDetailView(for: item)
             }
             #endif
         }
