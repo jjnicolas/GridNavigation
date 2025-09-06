@@ -105,9 +105,6 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     }
                 #endif
             }
-            .navigationDestination(for: Item.self) { item in
-                itemDetailView(for: item)
-            }
             .navigationDestination(isPresented: $presentDetail) {
                 presentedDetailView()
             }
