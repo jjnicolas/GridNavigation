@@ -83,19 +83,21 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             ScrollView {
                 LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        #if os(macOS)
+//                        #if os(macOS)
                             cellBuilder(item)
-                                .focusable()
+                        #if os(macOS)
+                            .focusable()
                                 .focused($focusedIndex, equals: index)
+                        #endif
                                 .onTapGesture {
                                     selectedItem = item
                                     presentDetail = true
                                 }
-                        #else
-                            NavigationLink(value: item) {
-                                cellBuilder(item)
-                            }
-                        #endif
+//                        #else
+//                            NavigationLink(value: item) {
+//                                cellBuilder(item)
+//                            }
+//                        #endif
                     }
                 }
                 .padding()
@@ -105,10 +107,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     }
                 #endif
             }
-            #if os(macOS)
             .navigationDestination(isPresented: $presentDetail) {
                 presentedDetailView()
             }
+#if os(macOS)
             .gridKeyboardNavigation(
                 focusedIndex: $focusedIndex,
                 itemCount: items.count,
@@ -118,10 +120,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             .task {
                 focusedIndex = items.isEmpty ? nil : 0
             }
-            #else
-            .navigationDestination(for: Item.self) { item in
-                itemDetailView(for: item)
-            }
+//            #else
+//            .navigationDestination(for: Item.self) { item in
+//                itemDetailView(for: item)
+//            }
             #endif
         }
     }
