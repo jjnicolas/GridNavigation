@@ -36,6 +36,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     private let columns: [GridItem]
     private let columnCount: Int
     private let spacing: CGFloat
+    private let horizontalPadding: CGFloat
 
     // MARK: - View Builders
 
@@ -61,12 +62,14 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     ///   - items: Array of items conforming to GridNavigable
     ///   - columns: Array of GridItem defining column layout
     ///   - spacing: Spacing between grid items (default: 20)
+    ///   - horizontalPadding: Horizontal padding for the grid (default: 16)
     ///   - cellContent: ViewBuilder for individual cell content
     ///   - detailContent: ViewBuilder for detail view content
     public init(
         items: [Item],
         columns: [GridItem],
         spacing: CGFloat = 20,
+        horizontalPadding: CGFloat = 16,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
         @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
     ) {
@@ -74,6 +77,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         self.columns = columns
         columnCount = columns.count
         self.spacing = spacing
+        self.horizontalPadding = horizontalPadding
         cellBuilder = cellContent
         detailBuilder = detailContent
     }
@@ -94,7 +98,8 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                                 }
                     }
                 }
-                .padding()
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical)
                 #if os(macOS)
                     .onChange(of: focusedIndex) { _, newIndex in
                         scrollToFocusedItem(newIndex, proxy: proxy)
@@ -195,6 +200,7 @@ public extension GridNavigationView {
     ///   - columnCount: Number of columns in the grid
     ///   - columnWidth: Fixed width for each column
     ///   - spacing: Spacing between grid items (default: 20)
+    ///   - horizontalPadding: Horizontal padding for the grid (default: 16)
     ///   - cellContent: ViewBuilder for individual cell content
     ///   - detailContent: ViewBuilder for detail view content
     init(
@@ -202,6 +208,7 @@ public extension GridNavigationView {
         columnCount: Int,
         columnWidth: CGFloat,
         spacing: CGFloat = 20,
+        horizontalPadding: CGFloat = 16,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
         @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
     ) {
@@ -210,6 +217,7 @@ public extension GridNavigationView {
             items: items,
             columns: columns,
             spacing: spacing,
+            horizontalPadding: horizontalPadding,
             cellContent: cellContent,
             detailContent: detailContent,
         )
@@ -222,6 +230,7 @@ public extension GridNavigationView {
     ///   - minItemWidth: Minimum width for adaptive columns (default: 150)
     ///   - maxItemWidth: Maximum width for adaptive columns (default: 200)
     ///   - spacing: Spacing between grid items (default: 20)
+    ///   - horizontalPadding: Horizontal padding for the grid (default: 16)
     ///   - cellContent: ViewBuilder for individual cell content
     ///   - detailContent: ViewBuilder for detail view content
     init(
@@ -229,6 +238,7 @@ public extension GridNavigationView {
         minItemWidth: CGFloat = 150,
         maxItemWidth: CGFloat = 200,
         spacing: CGFloat = 20,
+        horizontalPadding: CGFloat = 16,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
         @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
     ) {
@@ -237,6 +247,7 @@ public extension GridNavigationView {
             items: items,
             columns: columns,
             spacing: spacing,
+            horizontalPadding: horizontalPadding,
             cellContent: cellContent,
             detailContent: detailContent,
         )
