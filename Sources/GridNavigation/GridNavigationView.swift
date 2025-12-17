@@ -16,6 +16,7 @@ import SwiftUI
 /// - Generic support for any data type conforming to GridNavigable
 /// - Customizable cell and detail views
 /// - Multiple column layout options
+/// - Fixed: No longer limited to 16 items for keyboard navigation
 ///
 /// Example usage:
 /// ```swift
@@ -45,13 +46,12 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
 
     // MARK: - State
 
-    #if os(macOS)
-        @FocusState private var focusedIndex: Int?
-    #endif
+    @State private var focusedIndex: Int?
     @State private var presentDetail = false
     @State private var selectedItem: Item?
     #if os(macOS)
         @State private var lastOpenedIndex: Int?
+        @FocusState private var isScrollViewFocused: Bool
     #endif
 
     // MARK: - Initializer
@@ -71,15 +71,15 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         spacing: CGFloat = 20,
         horizontalPadding: CGFloat = 16,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
-        @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
+        @ViewBuilder detailContent: @escaping (Item) -> DetailContent
     ) {
         self.items = items
         self.columns = columns
-        columnCount = columns.count
+        self.columnCount = columns.count
         self.spacing = spacing
         self.horizontalPadding = horizontalPadding
-        cellBuilder = cellContent
-        detailBuilder = detailContent
+        self.cellBuilder = cellContent
+        self.detailBuilder = detailContent
     }
 
     public var body: some View {
@@ -87,15 +87,23 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             ScrollView {
                 LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        ZStack {
                             cellBuilder(item)
-                        #if os(macOS)
-                            .focusable()
-                                .focused($focusedIndex, equals: index)
-                        #endif
-                                .onTapGesture {
-                                    selectedItem = item
-                                    presentDetail = true
-                                }
+
+                            #if os(macOS)
+                            // Visual selection indicator
+                            if focusedIndex == index {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color.accentColor, lineWidth: 3)
+                                    .allowsHitTesting(false)
+                            }
+                            #endif
+                        }
+                        .onTapGesture {
+                            selectedItem = item
+                            presentDetail = true
+                        }
+                        .id(item.id)
                     }
                 }
                 .padding(.horizontal, horizontalPadding)
@@ -106,20 +114,44 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     }
                 #endif
             }
+            #if os(macOS)
+            .focusable()
+            .focused($isScrollViewFocused)
+            .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { keyPress in
+                guard let currentIndex = focusedIndex else { return .ignored }
+
+                let nextIndex: Int?
+                switch keyPress.key {
+                case .upArrow:
+                    nextIndex = currentIndex >= columnCount ? currentIndex - columnCount : nil
+                case .downArrow:
+                    let next = currentIndex + columnCount
+                    nextIndex = next < items.count ? next : nil
+                case .leftArrow:
+                    nextIndex = currentIndex > 0 ? currentIndex - 1 : nil
+                case .rightArrow:
+                    nextIndex = currentIndex + 1 < items.count ? currentIndex + 1 : nil
+                default:
+                    nextIndex = nil
+                }
+
+                guard let newIndex = nextIndex else { return .ignored }
+                focusedIndex = newIndex
+                return .handled
+            }
+            .onKeyPress(keys: [.return]) { _ in
+                guard let index = focusedIndex else { return .ignored }
+                handleReturnPress(index)
+                return .handled
+            }
+            .task {
+                focusedIndex = items.isEmpty ? nil : 0
+                isScrollViewFocused = true
+            }
+            #endif
             .navigationDestination(isPresented: $presentDetail) {
                 presentedDetailView()
             }
-            #if os(macOS)
-            .gridKeyboardNavigation(
-                focusedIndex: $focusedIndex,
-                itemCount: items.count,
-                columnCount: columnCount,
-                onReturnPressed: handleReturnPress,
-            )
-            .task {
-                focusedIndex = items.isEmpty ? nil : 0
-            }
-            #endif
         }
     }
 
@@ -128,25 +160,11 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     #if os(macOS)
         private func scrollToFocusedItem(_ newIndex: Int?, proxy: ScrollViewProxy) {
             guard let index = newIndex, items.indices.contains(index) else { return }
-            withAnimation {
-                proxy.scrollTo(items[index].id, anchor: UnitPoint.center)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                proxy.scrollTo(items[index].id, anchor: .center)
             }
         }
     #endif
-
-    private func itemDetailView(for item: Item) -> some View {
-        detailBuilder(item)
-        #if os(macOS)
-            .onAppear {
-                if let index = items.firstIndex(where: { $0.id == item.id }) {
-                    lastOpenedIndex = index
-                }
-            }
-            .onDisappear {
-                restoreFocusAfterPop()
-            }
-        #endif
-    }
 
     @ViewBuilder
     private func presentedDetailView() -> some View {
@@ -175,7 +193,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     #if os(macOS)
         private func handleReturnPress(_ index: Int) {
             guard items.indices.contains(index) else { return }
-            let item = items[index] // O(1) direct access
+            let item = items[index]
             selectedItem = item
             lastOpenedIndex = index
             presentDetail = true
@@ -185,6 +203,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             guard let index = lastOpenedIndex else { return }
             Task {
                 focusedIndex = index
+                isScrollViewFocused = true
             }
         }
     #endif
@@ -210,7 +229,7 @@ public extension GridNavigationView {
         spacing: CGFloat = 20,
         horizontalPadding: CGFloat = 16,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
-        @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
+        @ViewBuilder detailContent: @escaping (Item) -> DetailContent
     ) {
         let columns = Array(repeating: GridItem(.fixed(columnWidth)), count: columnCount)
         self.init(
@@ -219,7 +238,7 @@ public extension GridNavigationView {
             spacing: spacing,
             horizontalPadding: horizontalPadding,
             cellContent: cellContent,
-            detailContent: detailContent,
+            detailContent: detailContent
         )
     }
 
@@ -240,7 +259,7 @@ public extension GridNavigationView {
         spacing: CGFloat = 20,
         horizontalPadding: CGFloat = 16,
         @ViewBuilder cellContent: @escaping (Item) -> CellContent,
-        @ViewBuilder detailContent: @escaping (Item) -> DetailContent,
+        @ViewBuilder detailContent: @escaping (Item) -> DetailContent
     ) {
         let columns = [GridItem(.adaptive(minimum: minItemWidth, maximum: maxItemWidth))]
         self.init(
@@ -249,7 +268,7 @@ public extension GridNavigationView {
             spacing: spacing,
             horizontalPadding: horizontalPadding,
             cellContent: cellContent,
-            detailContent: detailContent,
+            detailContent: detailContent
         )
     }
 }
