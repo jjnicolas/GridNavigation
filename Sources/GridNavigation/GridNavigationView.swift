@@ -87,12 +87,23 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             ScrollView {
                 LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        cellBuilder(item)
-                            .onTapGesture {
-                                selectedItem = item
-                                presentDetail = true
+                        ZStack {
+                            cellBuilder(item)
+
+                            #if os(macOS)
+                            // Visual selection indicator
+                            if focusedIndex == index {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(Color.accentColor, lineWidth: 3)
+                                    .allowsHitTesting(false)
                             }
-                            .id(item.id)
+                            #endif
+                        }
+                        .onTapGesture {
+                            selectedItem = item
+                            presentDetail = true
+                        }
+                        .id(item.id)
                     }
                 }
                 .padding(.horizontal, horizontalPadding)
@@ -106,6 +117,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             #if os(macOS)
             .focusable()
             .focused($isScrollViewFocused)
+            .focusEffectDisabled()
             .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { keyPress in
                 guard let currentIndex = focusedIndex else { return .ignored }
 
