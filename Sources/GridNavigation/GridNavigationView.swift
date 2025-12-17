@@ -87,23 +87,12 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             ScrollView {
                 LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        ZStack {
-                            cellBuilder(item)
-
-                            #if os(macOS)
-                            // Visual selection indicator
-                            if focusedIndex == index {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.accentColor, lineWidth: 3)
-                                    .allowsHitTesting(false)
+                        cellBuilder(item)
+                            .onTapGesture {
+                                selectedItem = item
+                                presentDetail = true
                             }
-                            #endif
-                        }
-                        .onTapGesture {
-                            selectedItem = item
-                            presentDetail = true
-                        }
-                        .id(item.id)
+                            .id(item.id)
                     }
                 }
                 .padding(.horizontal, horizontalPadding)
