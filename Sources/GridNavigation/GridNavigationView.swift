@@ -100,6 +100,9 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                             #endif
                         }
                         .onTapGesture {
+                            #if os(macOS)
+                            lastOpenedIndex = index
+                            #endif
                             selectedItem = item
                             presentDetail = true
                         }
@@ -117,7 +120,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             #if os(macOS)
             .focusable()
             .focused($isScrollViewFocused)
-            .focusEffectDisabled()
+            .focusEffectDisabled()  // Disable system focus ring, use custom indicators instead
             .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { keyPress in
                 guard let currentIndex = focusedIndex else { return .ignored }
 
@@ -146,13 +149,35 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 return .handled
             }
             .task {
+                // Set initial focus after a small delay to ensure view hierarchy is ready
                 focusedIndex = items.isEmpty ? nil : 0
+                try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
                 isScrollViewFocused = true
+            }
+            .onChange(of: items.count) { oldCount, newCount in
+                // When items are first loaded (0 -> n), focus the first item
+                if oldCount == 0 && newCount > 0 {
+                    Task {
+                        focusedIndex = 0
+                        try? await Task.sleep(nanoseconds: 50_000_000)
+                        isScrollViewFocused = true
+                    }
+                }
             }
             #endif
             .navigationDestination(isPresented: $presentDetail) {
                 presentedDetailView()
             }
+            #if os(macOS)
+            .onChange(of: presentDetail) { _, isPresenting in
+                // When detail view is dismissed (presentDetail: true -> false),
+                // restore focus to the grid. This replaces the .onDisappear approach
+                // which caused rebuild loops in nested GridNavigationViews.
+                if !isPresenting {
+                    restoreFocusAfterPop()
+                }
+            }
+            #endif
         }
     }
 
@@ -171,23 +196,8 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     private func presentedDetailView() -> some View {
         if let item = selectedItem {
             detailBuilder(item)
-            #if os(macOS)
-                .onAppear {
-                    lastOpenedIndex = selectedItem.flatMap { item in
-                        items.firstIndex(where: { $0.id == item.id })
-                    }
-                }
-                .onDisappear {
-                    restoreFocusAfterPop()
-                }
-            #endif
         } else {
             Text("No item selected")
-            #if os(macOS)
-                .onDisappear {
-                    restoreFocusAfterPop()
-                }
-            #endif
         }
     }
 
