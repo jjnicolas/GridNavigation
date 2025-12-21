@@ -17,6 +17,15 @@ import SwiftUI
 /// - Customizable cell and detail views
 /// - Multiple column layout options
 /// - Fixed: No longer limited to 16 items for keyboard navigation
+/// - Safe nested navigation: Detail views can contain their own NavigationLinks
+///   and focus states without conflicts
+///
+/// ## Focus Management
+/// On macOS, the grid implements intelligent focus restoration that:
+/// - Tracks when the grid is visible vs. hidden during navigation
+/// - Only restores focus when returning directly to the grid view
+/// - Avoids stealing focus from nested navigation or other focus states
+/// - Prevents rebuild loops in nested GridNavigationView instances
 ///
 /// Example usage:
 /// ```swift
@@ -51,6 +60,8 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     @State private var selectedItem: Item?
     #if os(macOS)
         @State private var lastOpenedIndex: Int?
+        @State private var isGridVisible = false
+        @State private var shouldRestoreFocus = false
         @FocusState private var isScrollViewFocused: Bool
     #endif
 
@@ -152,7 +163,11 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 // Set initial focus after a small delay to ensure view hierarchy is ready
                 focusedIndex = items.isEmpty ? nil : 0
                 try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
-                isScrollViewFocused = true
+                // Only claim focus if the grid is currently visible
+                // This prevents stealing focus from detail views in nested grids
+                if isGridVisible {
+                    isScrollViewFocused = true
+                }
             }
             .onChange(of: items.count) { oldCount, newCount in
                 // When items are first loaded (0 -> n), focus the first item
@@ -160,7 +175,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     Task {
                         focusedIndex = 0
                         try? await Task.sleep(nanoseconds: 50_000_000)
-                        isScrollViewFocused = true
+                        // Only claim focus if the grid is currently visible
+                        if isGridVisible {
+                            isScrollViewFocused = true
+                        }
                     }
                 }
             }
@@ -169,12 +187,30 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 presentedDetailView()
             }
             #if os(macOS)
+            .onAppear {
+                // Mark the grid as visible and restore focus if needed
+                isGridVisible = true
+                if shouldRestoreFocus {
+                    restoreFocusAfterPop()
+                    shouldRestoreFocus = false
+                }
+            }
+            .onDisappear {
+                // Grid is no longer visible (navigated away or window closed)
+                isGridVisible = false
+            }
             .onChange(of: presentDetail) { _, isPresenting in
                 // When detail view is dismissed (presentDetail: true -> false),
-                // restore focus to the grid. This replaces the .onDisappear approach
-                // which caused rebuild loops in nested GridNavigationViews.
+                // schedule focus restoration. Only restore if grid is visible
+                // to avoid conflicts with nested navigation focus states.
                 if !isPresenting {
-                    restoreFocusAfterPop()
+                    // If grid is currently visible, restore immediately
+                    // Otherwise, flag for restoration when grid reappears
+                    if isGridVisible {
+                        restoreFocusAfterPop()
+                    } else {
+                        shouldRestoreFocus = true
+                    }
                 }
             }
             #endif
@@ -213,6 +249,15 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         private func restoreFocusAfterPop() {
             guard let index = lastOpenedIndex else { return }
             Task {
+                // Add a small delay to ensure navigation transition is complete
+                // and view hierarchy is stable before attempting to restore focus
+                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms delay
+
+                // Double-check that the grid is still visible after the delay
+                // If the user navigated away again during the delay, skip restoration
+                guard isGridVisible else { return }
+
+                // Restore the focused index and reclaim focus for the grid
                 focusedIndex = index
                 isScrollViewFocused = true
             }
