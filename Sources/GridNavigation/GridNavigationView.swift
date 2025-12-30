@@ -134,7 +134,8 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             .focusable()
             .focused($isScrollViewFocused)
             .focusEffectDisabled()  // Disable system focus ring, use custom indicators instead
-            .onChange(of: isScrollViewFocused) { _, newValue in
+            .onChange(of: isScrollViewFocused) { oldValue, newValue in
+                print("GridNav: isScrollViewFocused changed from \(oldValue) to \(newValue)")
                 hasKeyboardFocus = newValue
             }
             .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { keyPress in
@@ -171,6 +172,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 // Only claim focus if the grid is currently visible
                 // This prevents stealing focus from detail views in nested grids
                 if isGridVisible {
+                    print("GridNav: Setting isScrollViewFocused = true (initial)")
                     isScrollViewFocused = true
                 }
             }
