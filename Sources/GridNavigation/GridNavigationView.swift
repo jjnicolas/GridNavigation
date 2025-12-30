@@ -199,6 +199,14 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 // Grid is no longer visible (navigated away or window closed)
                 isGridVisible = false
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("lateralNavigation"))) { notification in
+                // Update lastOpenedIndex when detail view reports navigation to a different item
+                // This ensures focus returns to the correct thumbnail after dismissing detail view
+                if let itemId = notification.object as? UUID,
+                   let index = items.firstIndex(where: { $0.id == itemId }) {
+                    lastOpenedIndex = index
+                }
+            }
             .onChange(of: presentDetail) { _, isPresenting in
                 // When detail view is dismissed (presentDetail: true -> false),
                 // schedule focus restoration. Only restore if grid is visible
