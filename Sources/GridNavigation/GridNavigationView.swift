@@ -103,9 +103,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
 
                             #if os(macOS)
                             // Visual selection indicator
+                            // Blue when grid has keyboard focus, grey when focus is elsewhere (e.g., search field)
                             if focusedIndex == index {
                                 RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.accentColor, lineWidth: 3)
+                                    .stroke(isScrollViewFocused ? Color.accentColor : Color.gray, lineWidth: 3)
                                     .allowsHitTesting(false)
                             }
                             #endif
