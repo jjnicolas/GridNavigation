@@ -168,12 +168,16 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             .task {
                 // Set initial focus after a small delay to ensure view hierarchy is ready
                 focusedIndex = items.isEmpty ? nil : 0
+                print("GridNav: .task started, isGridVisible=\(isGridVisible)")
                 try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
+                print("GridNav: .task after sleep, isGridVisible=\(isGridVisible)")
                 // Only claim focus if the grid is currently visible
                 // This prevents stealing focus from detail views in nested grids
                 if isGridVisible {
                     print("GridNav: Setting isScrollViewFocused = true (initial)")
                     isScrollViewFocused = true
+                } else {
+                    print("GridNav: NOT setting focus because isGridVisible=false")
                 }
             }
             .onChange(of: items.count) { oldCount, newCount in
@@ -196,6 +200,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             #if os(macOS)
             .onAppear {
                 // Mark the grid as visible and restore focus if needed
+                print("GridNav: .onAppear - setting isGridVisible=true")
                 isGridVisible = true
                 if shouldRestoreFocus {
                     restoreFocusAfterPop()
