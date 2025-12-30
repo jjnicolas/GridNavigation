@@ -62,6 +62,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         @State private var lastOpenedIndex: Int?
         @State private var isGridVisible = false
         @State private var shouldRestoreFocus = false
+        @State private var hasKeyboardFocus = false // Synced with FocusState for reliable view updates
         @FocusState private var isScrollViewFocused: Bool
     #endif
 
@@ -106,7 +107,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                             // Blue when grid has keyboard focus, grey when focus is elsewhere (e.g., search field)
                             if focusedIndex == index {
                                 RoundedRectangle(cornerRadius: 4)
-                                    .stroke(isScrollViewFocused ? Color.accentColor : Color.gray, lineWidth: 3)
+                                    .stroke(hasKeyboardFocus ? Color.accentColor : Color.gray, lineWidth: 3)
                                     .allowsHitTesting(false)
                             }
                             #endif
@@ -133,6 +134,9 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             .focusable()
             .focused($isScrollViewFocused)
             .focusEffectDisabled()  // Disable system focus ring, use custom indicators instead
+            .onChange(of: isScrollViewFocused) { _, newValue in
+                hasKeyboardFocus = newValue
+            }
             .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { keyPress in
                 guard let currentIndex = focusedIndex else { return .ignored }
 
