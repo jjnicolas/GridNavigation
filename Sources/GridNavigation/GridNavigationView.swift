@@ -131,11 +131,6 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 #endif
             }
             #if os(macOS)
-            .contentShape(Rectangle()) // Make entire area tappable
-            .onTapGesture {
-                // Clicking anywhere on the grid claims keyboard focus
-                isScrollViewFocused = true
-            }
             .focusable()
             .focused($isScrollViewFocused)
             .focusEffectDisabled()  // Disable system focus ring, use custom indicators instead
