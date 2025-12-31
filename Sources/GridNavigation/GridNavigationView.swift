@@ -184,13 +184,14 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 }
             }
             .onChange(of: items.count) { oldCount, newCount in
-                if oldCount == 0 && newCount > 0 {
-                    Task {
-                        try? await Task.sleep(nanoseconds: 50_000_000)
-                        if isGridVisible {
-                            focusedIndex = 0
-                            isGridFocused = true
-                        }
+                // Handle any change in items (filtering, loading, etc.)
+                if newCount == 0 {
+                    focusedIndex = nil
+                } else if oldCount == 0 || focusedIndex == nil || focusedIndex! >= newCount {
+                    // Items appeared, or focusedIndex is invalid - focus first item
+                    focusedIndex = 0
+                    if isGridVisible {
+                        isGridFocused = true
                     }
                 }
             }
