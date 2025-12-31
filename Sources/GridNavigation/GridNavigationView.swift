@@ -219,6 +219,13 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     lastOpenedIndex = index
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("restoreGridFocus"))) { _ in
+                print("GridNav: Received restoreGridFocus notification, isGridVisible=\(isGridVisible)")
+                if isGridVisible {
+                    print("GridNav: Setting isScrollViewFocused = true (from notification)")
+                    isScrollViewFocused = true
+                }
+            }
             .onChange(of: presentDetail) { _, isPresenting in
                 // When detail view is dismissed (presentDetail: true -> false),
                 // schedule focus restoration. Only restore if grid is visible
