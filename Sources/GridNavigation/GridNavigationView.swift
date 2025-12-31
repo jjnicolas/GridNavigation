@@ -62,7 +62,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         @State private var lastOpenedIndex: Int?
         @State private var isGridVisible = false
         @State private var shouldRestoreFocus = false
-        @FocusState private var isScrollViewFocused: Bool
+        @State private var isGridFocused = false  // AppKit-backed focus state
     #endif
 
     // MARK: - Initializer
@@ -94,103 +94,78 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
     }
 
     public var body: some View {
+        #if os(macOS)
+        macOSBody
+        #else
+        iOSBody
+        #endif
+    }
+
+    #if os(iOS)
+    private var iOSBody: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        ZStack {
-                            cellBuilder(item)
-
-                            #if os(macOS)
-                            // Visual selection indicator
-                            if focusedIndex == index {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.accentColor, lineWidth: 3)
-                                    .allowsHitTesting(false)
+                        cellBuilder(item)
+                            .onTapGesture {
+                                selectedItem = item
+                                presentDetail = true
                             }
-                            #endif
-                        }
-                        .onTapGesture {
-                            #if os(macOS)
-                            lastOpenedIndex = index
-                            #endif
-                            selectedItem = item
-                            presentDetail = true
-                        }
-                        .id(item.id)
+                            .id(item.id)
                     }
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical)
-                #if os(macOS)
-                    .onChange(of: focusedIndex) { _, newIndex in
-                        scrollToFocusedItem(newIndex, proxy: proxy)
-                    }
-                #endif
             }
-            #if os(macOS)
-            .focusable()
-            .focused($isScrollViewFocused)
-            .focusEffectDisabled()  // Disable system focus ring, use custom indicators instead
-            .onKeyPress(keys: [.upArrow, .downArrow, .leftArrow, .rightArrow]) { keyPress in
-                guard let currentIndex = focusedIndex else { return .ignored }
-
-                let nextIndex: Int?
-                switch keyPress.key {
-                case .upArrow:
-                    nextIndex = currentIndex >= columnCount ? currentIndex - columnCount : nil
-                case .downArrow:
-                    let next = currentIndex + columnCount
-                    nextIndex = next < items.count ? next : nil
-                case .leftArrow:
-                    nextIndex = currentIndex > 0 ? currentIndex - 1 : nil
-                case .rightArrow:
-                    nextIndex = currentIndex + 1 < items.count ? currentIndex + 1 : nil
-                default:
-                    nextIndex = nil
-                }
-
-                guard let newIndex = nextIndex else { return .ignored }
-                focusedIndex = newIndex
-                return .handled
-            }
-            .onKeyPress(keys: [.return]) { _ in
-                guard let index = focusedIndex else { return .ignored }
-                handleReturnPress(index)
-                return .handled
-            }
-            .task {
-                // Set initial focus after a small delay to ensure view hierarchy is ready
-                try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
-                // Only claim focus if the grid is currently visible
-                // This prevents stealing focus from detail views in nested grids
-                // Set focusedIndex and isScrollViewFocused together so blue border shows immediately
-                if isGridVisible {
-                    focusedIndex = items.isEmpty ? nil : 0
-                    isScrollViewFocused = true
-                }
-            }
-            .onChange(of: items.count) { oldCount, newCount in
-                // When items are first loaded (0 -> n), focus the first item
-                if oldCount == 0 && newCount > 0 {
-                    Task {
-                        try? await Task.sleep(nanoseconds: 50_000_000)
-                        // Only claim focus if the grid is currently visible
-                        // Set focusedIndex and isScrollViewFocused together so blue border shows immediately
-                        if isGridVisible {
-                            focusedIndex = 0
-                            isScrollViewFocused = true
-                        }
-                    }
-                }
-            }
-            #endif
             .navigationDestination(isPresented: $presentDetail) {
                 presentedDetailView()
             }
-            #if os(macOS)
+        }
+    }
+    #endif
+
+    #if os(macOS)
+    private var macOSBody: some View {
+        ScrollViewReader { proxy in
+            FocusableGridContainer(
+                isFocused: $isGridFocused,
+                onKeyEvent: { event in
+                    handleKeyEvent(event)
+                }
+            ) {
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: spacing) {
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            ZStack {
+                                cellBuilder(item)
+
+                                // Visual selection indicator
+                                if focusedIndex == index {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(isGridFocused ? Color.accentColor : Color.gray, lineWidth: 3)
+                                        .allowsHitTesting(false)
+                                }
+                            }
+                            .onTapGesture {
+                                lastOpenedIndex = index
+                                selectedItem = item
+                                presentDetail = true
+                            }
+                            .id(item.id)
+                        }
+                    }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical)
+                    .onChange(of: focusedIndex) { _, newIndex in
+                        scrollToFocusedItem(newIndex, proxy: proxy)
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $presentDetail) {
+                presentedDetailView()
+            }
             .onAppear {
-                // Mark the grid as visible and restore focus if needed
                 isGridVisible = true
                 if shouldRestoreFocus {
                     restoreFocusAfterPop()
@@ -198,24 +173,40 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 }
             }
             .onDisappear {
-                // Grid is no longer visible (navigated away or window closed)
                 isGridVisible = false
             }
+            .task {
+                // Set initial focus after a small delay
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                if isGridVisible {
+                    focusedIndex = items.isEmpty ? nil : 0
+                    isGridFocused = true
+                }
+            }
+            .onChange(of: items.count) { oldCount, newCount in
+                if oldCount == 0 && newCount > 0 {
+                    Task {
+                        try? await Task.sleep(nanoseconds: 50_000_000)
+                        if isGridVisible {
+                            focusedIndex = 0
+                            isGridFocused = true
+                        }
+                    }
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("lateralNavigation"))) { notification in
-                // Update lastOpenedIndex when detail view reports navigation to a different item
-                // This ensures focus returns to the correct thumbnail after dismissing detail view
                 if let itemId = notification.object as? UUID,
                    let index = items.firstIndex(where: { $0.id == itemId }) {
                     lastOpenedIndex = index
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("restoreGridFocus"))) { _ in
+                if isGridVisible {
+                    isGridFocused = true
+                }
+            }
             .onChange(of: presentDetail) { _, isPresenting in
-                // When detail view is dismissed (presentDetail: true -> false),
-                // schedule focus restoration. Only restore if grid is visible
-                // to avoid conflicts with nested navigation focus states.
                 if !isPresenting {
-                    // If grid is currently visible, restore immediately
-                    // Otherwise, flag for restoration when grid reappears
                     if isGridVisible {
                         restoreFocusAfterPop()
                     } else {
@@ -223,9 +214,40 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     }
                 }
             }
-            #endif
         }
     }
+
+    private func handleKeyEvent(_ event: GridKeyEvent) -> Bool {
+        switch event {
+        case .up:
+            guard let currentIndex = focusedIndex, currentIndex >= columnCount else { return false }
+            focusedIndex = currentIndex - columnCount
+            return true
+        case .down:
+            guard let currentIndex = focusedIndex else { return false }
+            let next = currentIndex + columnCount
+            guard next < items.count else { return false }
+            focusedIndex = next
+            return true
+        case .left:
+            guard let currentIndex = focusedIndex, currentIndex > 0 else { return false }
+            focusedIndex = currentIndex - 1
+            return true
+        case .right:
+            guard let currentIndex = focusedIndex else { return false }
+            let next = currentIndex + 1
+            guard next < items.count else { return false }
+            focusedIndex = next
+            return true
+        case .return:
+            guard let index = focusedIndex else { return false }
+            handleReturnPress(index)
+            return true
+        case .escape:
+            return false  // Let it bubble up for navigation
+        }
+    }
+    #endif
 
     // MARK: - Private Methods
 
@@ -260,16 +282,13 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             guard let index = lastOpenedIndex else { return }
             Task {
                 // Add a small delay to ensure navigation transition is complete
-                // and view hierarchy is stable before attempting to restore focus
                 try? await Task.sleep(nanoseconds: 100_000_000) // 100ms delay
 
-                // Double-check that the grid is still visible after the delay
-                // If the user navigated away again during the delay, skip restoration
                 guard isGridVisible else { return }
 
-                // Restore the focused index and reclaim focus for the grid
+                // Restore focus - AppKit will handle makeFirstResponder
                 focusedIndex = index
-                isScrollViewFocused = true
+                isGridFocused = true
             }
         }
     #endif
