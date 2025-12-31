@@ -96,13 +96,31 @@ class FocusableContainerView: NSView {
         return result
     }
 
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // Auto-claim focus when added to window
+        if window != nil {
+            DispatchQueue.main.async { [weak self] in
+                self?.window?.makeFirstResponder(self)
+            }
+        }
+    }
+
     override func keyDown(with event: NSEvent) {
         let handled = handleKey(event)
         if !handled {
-            // Don't call super - it causes the beep
-            // Instead, pass unhandled events up the responder chain
+            // Pass unhandled events up the responder chain
             nextResponder?.keyDown(with: event)
         }
+    }
+
+    // Let command-key combinations pass through to menus/other handlers
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if event.modifierFlags.contains(.command) {
+            // Pass command keys to next responder (for ⌘F, etc.)
+            return super.performKeyEquivalent(with: event)
+        }
+        return false
     }
 
     private func handleKey(_ event: NSEvent) -> Bool {
