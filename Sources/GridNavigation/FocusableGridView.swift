@@ -114,10 +114,16 @@ class FocusableContainerView: NSView {
         }
     }
 
-    // Let command-key combinations pass through to menus/other handlers
+    // Handle command-key combinations
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        // Handle ⌘F - post notification to activate search
+        if event.modifierFlags.contains(.command),
+           event.charactersIgnoringModifiers == "f" {
+            NotificationCenter.default.post(name: Notification.Name("activateSearch"), object: nil)
+            return true
+        }
+        // Pass other command keys through
         if event.modifierFlags.contains(.command) {
-            // Pass command keys to next responder (for ⌘F, etc.)
             return super.performKeyEquivalent(with: event)
         }
         return false
