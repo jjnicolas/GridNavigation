@@ -166,11 +166,12 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             }
             .task {
                 // Set initial focus after a small delay to ensure view hierarchy is ready
-                focusedIndex = items.isEmpty ? nil : 0
                 try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
                 // Only claim focus if the grid is currently visible
                 // This prevents stealing focus from detail views in nested grids
+                // Set focusedIndex and isScrollViewFocused together so blue border shows immediately
                 if isGridVisible {
+                    focusedIndex = items.isEmpty ? nil : 0
                     isScrollViewFocused = true
                 }
             }
@@ -178,10 +179,11 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 // When items are first loaded (0 -> n), focus the first item
                 if oldCount == 0 && newCount > 0 {
                     Task {
-                        focusedIndex = 0
                         try? await Task.sleep(nanoseconds: 50_000_000)
                         // Only claim focus if the grid is currently visible
+                        // Set focusedIndex and isScrollViewFocused together so blue border shows immediately
                         if isGridVisible {
+                            focusedIndex = 0
                             isScrollViewFocused = true
                         }
                     }
