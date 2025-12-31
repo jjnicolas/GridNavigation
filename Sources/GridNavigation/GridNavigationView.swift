@@ -62,7 +62,7 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
         @State private var lastOpenedIndex: Int?
         @State private var isGridVisible = false
         @State private var shouldRestoreFocus = false
-        @State private var hasKeyboardFocus = false // Synced with FocusState for reliable view updates
+        @State private var hasKeyboardFocus = true // Default true; grey only shows after focus explicitly moves elsewhere
         @FocusState private var isScrollViewFocused: Bool
     #endif
 
