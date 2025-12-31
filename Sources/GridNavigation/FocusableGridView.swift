@@ -117,8 +117,9 @@ class FocusableContainerView: NSView {
     // Handle command-key combinations
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         // Handle ⌘F - post notification to activate search
-        if event.modifierFlags.contains(.command),
-           event.charactersIgnoringModifiers == "f" {
+        // keyCode 3 = "f" key
+        let commandOnly = event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command
+        if commandOnly && event.keyCode == 3 {
             NotificationCenter.default.post(name: Notification.Name("activateSearch"), object: nil)
             return true
         }
