@@ -209,15 +209,6 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                     lastOpenedIndex = index
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("restoreGridFocus"))) { _ in
-                // Restore keyboard focus to grid when search field is dismissed
-                // Use DispatchQueue to ensure we're after SwiftUI's focus handling
-                if isGridVisible {
-                    DispatchQueue.main.async {
-                        isScrollViewFocused = true
-                    }
-                }
-            }
             .onChange(of: presentDetail) { _, isPresenting in
                 // When detail view is dismissed (presentDetail: true -> false),
                 // schedule focus restoration. Only restore if grid is visible
