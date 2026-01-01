@@ -177,9 +177,9 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
             }
             .task {
                 // Set initial focus after a small delay
-                try? await Task.sleep(nanoseconds: 50_000_000)
-                if isGridVisible {
-                    focusedIndex = items.isEmpty ? nil : 0
+                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                if isGridVisible && !items.isEmpty {
+                    focusedIndex = 0
                     isGridFocused = true
                 }
             }
@@ -187,8 +187,8 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                 // Handle any change in items (filtering, loading, etc.)
                 if newCount == 0 {
                     focusedIndex = nil
-                } else if oldCount == 0 || focusedIndex == nil || focusedIndex! >= newCount {
-                    // Items appeared, or focusedIndex is invalid - focus first item
+                } else if focusedIndex == nil || focusedIndex! >= newCount {
+                    // focusedIndex is invalid - focus first item and claim focus
                     focusedIndex = 0
                     if isGridVisible {
                         isGridFocused = true

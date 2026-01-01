@@ -96,16 +96,6 @@ class FocusableContainerView: NSView {
         return result
     }
 
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        // Auto-claim focus when added to window
-        if window != nil {
-            DispatchQueue.main.async { [weak self] in
-                self?.window?.makeFirstResponder(self)
-            }
-        }
-    }
-
     override func keyDown(with event: NSEvent) {
         let handled = handleKey(event)
         if !handled {
