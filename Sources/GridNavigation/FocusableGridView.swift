@@ -132,10 +132,15 @@ class FocusableContainerView: NSView {
         }
     }
 
-    // Allow mouse clicks to claim focus
+    // Claim focus after the event so navigation triggered by the click
+    // completes before we alter first-responder state. Calling
+    // makeFirstResponder inside mouseDown races with navigation-driven
+    // view-tree replacement in updateNSView and can freeze the UI.
     override func mouseDown(with event: NSEvent) {
-        window?.makeFirstResponder(self)
         super.mouseDown(with: event)
+        DispatchQueue.main.async {
+            self.window?.makeFirstResponder(self)
+        }
     }
 }
 #endif
