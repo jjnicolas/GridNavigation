@@ -64,7 +64,13 @@ struct FocusableGridContainer<Content: View>: NSViewRepresentable {
 
         if isFocused && nsView.window?.firstResponder !== nsView {
             DispatchQueue.main.async {
-                nsView.window?.makeFirstResponder(nsView)
+                // The view may have been detached from its window between scheduling
+                // and execution (e.g. during a navigation push/pop). Calling
+                // makeFirstResponder on a view that isn't in the window logs
+                // "but it is in a different window ((null))!" and nukes the first
+                // responder to nil, which silently breaks our key handlers.
+                guard let window = nsView.window, nsView.superview != nil else { return }
+                window.makeFirstResponder(nsView)
             }
         }
     }
@@ -76,9 +82,14 @@ class FocusableContainerView: NSView {
     var onFocusChange: ((Bool) -> Void)?
     var onKeyEvent: ((GridKeyEvent) -> Bool)?
 
-    override var acceptsFirstResponder: Bool { true }
+    // Only advertise as focusable while actually attached to a window. SwiftUI's
+    // FocusBridge picks this view as a focus target during layout passes; if the
+    // view has been removed from its window (e.g. during a navigation push/pop),
+    // the bridge's makeFirstResponder fails and AppKit clears the first responder
+    // to nil, which silently breaks keyboard navigation on subsequent screens.
+    override var acceptsFirstResponder: Bool { window != nil }
 
-    override var canBecomeKeyView: Bool { true }
+    override var canBecomeKeyView: Bool { window != nil }
 
     override func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
@@ -138,8 +149,9 @@ class FocusableContainerView: NSView {
     // view-tree replacement in updateNSView and can freeze the UI.
     override func mouseDown(with event: NSEvent) {
         super.mouseDown(with: event)
-        DispatchQueue.main.async {
-            self.window?.makeFirstResponder(self)
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let window = self.window, self.superview != nil else { return }
+            window.makeFirstResponder(self)
         }
     }
 }

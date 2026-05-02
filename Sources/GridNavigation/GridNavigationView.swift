@@ -148,6 +148,10 @@ public struct GridNavigationView<Item: GridNavigable, CellContent: View, DetailC
                                 }
                             }
                             .onTapGesture {
+                                // Collapse double-click to single-click: ignore taps while
+                                // a detail is already presenting, otherwise the second click
+                                // pushes a duplicate destination and corrupts focus state.
+                                guard !presentDetail else { return }
                                 lastOpenedIndex = index
                                 selectedItem = item
                                 presentDetail = true
