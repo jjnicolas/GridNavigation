@@ -1,6 +1,10 @@
-# GridNavigation
+<p align="center">
+  <img src="Resources/icon.png" alt="GridNavigation" width="128" height="128" />
+</p>
 
-A high-performance, cross-platform SwiftUI grid navigation library with full keyboard support.
+<h1 align="center">GridNavigation</h1>
+
+<p align="center">A high-performance, cross-platform SwiftUI grid navigation library with full keyboard support.</p>
 
 ## Features
 
