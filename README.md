@@ -195,6 +195,10 @@ The library includes comprehensive examples:
 - **Photo Gallery**: Image grid with metadata
 - **Product Catalog**: E-commerce style grid with availability
 
+## More apps
+
+Part of [Julien Nicolas's macOS & iOS apps & utilities](https://apps.tnfnet.org).
+
 ## License
 
 MIT License - see LICENSE file for details.
